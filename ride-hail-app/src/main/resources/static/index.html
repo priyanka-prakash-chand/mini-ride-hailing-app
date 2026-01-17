@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ride Hailing App - Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+        }
+        
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 14px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-weight: 600;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+        }
+        
+        .response {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 8px;
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+        }
+        
+        .response.success {
+            background: #d4edda;
+            border-left-color: #28a745;
+        }
+        
+        .response.error {
+            background: #f8d7da;
+            border-left-color: #dc3545;
+        }
+        
+        .response pre {
+            background: #ffffff !important;
+            color: #000000 !important;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            line-height: 1.5;
+            border: 1px solid #ddd;
+        }
+        
+        .response pre * {
+            color: inherit;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .card h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        
+        .status-pending {
+            background: #ffc107;
+            color: #000;
+        }
+        
+        .status-matched {
+            background: #28a745;
+            color: white;
+        }
+        
+        .status-in-progress {
+            background: #17a2b8;
+            color: white;
+        }
+        
+        .status-completed {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .status-cancelled {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .status-driver-arriving {
+            background: #17a2b8;
+            color: white;
+        }
+        
+        small {
+            display: block;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚗 Ride Hailing App</h1>
+            <p>Multi-tenant, Multi-region Ride Hailing System Demo</p>
+        </div>
+        
+        <!-- IMPORTANT SEQUENCE WARNING -->
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 10px; margin: 20px auto; max-width: 1200px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <h2 style="margin: 0 0 10px 0; color: white; font-size: 1.2em;">📋 REQUIRED RIDE LIFECYCLE SEQUENCE</h2>
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 1.1em; margin-bottom: 10px;">
+                <span style="background: rgba(255,255,255,0.2); padding: 8px 15px; border-radius: 5px; font-weight: bold;">1. Create Ride</span>
+                <span style="color: white;">→</span>
+                <span style="background: rgba(255,255,255,0.2); padding: 8px 15px; border-radius: 5px; font-weight: bold;">2. Mark Driver Arriving</span>
+                <span style="color: white;">→</span>
+                <span style="background: rgba(255,255,255,0.2); padding: 8px 15px; border-radius: 5px; font-weight: bold;">3. Start Ride</span>
+                <span style="color: white;">→</span>
+                <span style="background: rgba(255,255,255,0.2); padding: 8px 15px; border-radius: 5px; font-weight: bold;">4. Complete Ride</span>
+            </div>
+            <p style="margin: 0; font-size: 0.95em; opacity: 0.95;">
+                <strong>⚠️ CRITICAL:</strong> You CANNOT skip steps! If a ride is in "MATCHED" status, you MUST click "Mark Driver Arriving" before "Start Ride". 
+                Use "Get Ride" to see the current status and auto-fill all fields.
+            </p>
+        </div>
+        
+        <div class="content">
+            <!-- Create Ride Section -->
+            <div class="section">
+                <h2>Create Ride Request</h2>
+                <form id="createRideForm">
+                    <div class="grid">
+                        <div class="form-group">
+                            <label for="riderId">Rider ID</label>
+                            <input type="number" id="riderId" name="riderId" value="1" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="tier">Ride Tier</label>
+                            <select id="tier" name="tier" required>
+                                <option value="ECONOMY">Economy</option>
+                                <option value="PREMIUM">Premium</option>
+                                <option value="LUXURY">Luxury</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="paymentMethod">Payment Method</label>
+                            <select id="paymentMethod" name="paymentMethod" required>
+                                <option value="CARD">Card</option>
+                                <option value="WALLET">Wallet</option>
+                                <option value="CASH">Cash</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="grid">
+                        <div class="form-group">
+                            <label for="pickupLat">Pickup Latitude</label>
+                            <input type="number" id="pickupLat" name="pickupLat" step="0.000001" value="40.7128" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="pickupLng">Pickup Longitude</label>
+                            <input type="number" id="pickupLng" name="pickupLng" step="0.000001" value="-74.0060" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="pickupAddress">Pickup Address</label>
+                            <input type="text" id="pickupAddress" name="pickupAddress" value="New York, NY" required>
+                        </div>
+                    </div>
+                    <div class="grid">
+                        <div class="form-group">
+                            <label for="dropoffLat">Dropoff Latitude</label>
+                            <input type="number" id="dropoffLat" name="dropoffLat" step="0.000001" value="40.7589" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="dropoffLng">Dropoff Longitude</label>
+                            <input type="number" id="dropoffLng" name="dropoffLng" step="0.000001" value="-73.9851" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="dropoffAddress">Dropoff Address</label>
+                            <input type="text" id="dropoffAddress" name="dropoffAddress" value="Times Square, NY" required>
+                        </div>
+                    </div>
+                    <div class="grid">
+                        <div class="form-group">
+                            <label for="tenantId">Tenant ID</label>
+                            <input type="text" id="tenantId" name="tenantId" value="tenant1" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="region">Region</label>
+                            <input type="text" id="region" name="region" value="us-east" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn">Create Ride</button>
+                </form>
+                <div id="createRideResponse"></div>
+            </div>
+            
+            <!-- Get Ride Section -->
+            <div class="section">
+                <h2>Get Ride Details</h2>
+                <p style="font-size: 0.9em; color: #666; margin-bottom: 15px;">
+                    Enter a ride ID to see details and auto-fill all form fields below. This will also show you the next step to take.
+                </p>
+                <form id="getRideForm">
+                    <div class="form-group">
+                        <label for="rideId">Ride ID</label>
+                        <input type="text" id="rideId" name="rideId" placeholder="Enter ride ID" required>
+                    </div>
+                    <button type="submit" class="btn">Get Ride & Auto-Fill Forms</button>
+                </form>
+                <div id="getRideResponse"></div>
+            </div>
+            
+            <!-- Ride Actions Section -->
+            <div class="section">
+                <h2>Ride Actions</h2>
+                <div class="grid">
+                    <div class="card" style="border: 3px solid #28a745; background: linear-gradient(to bottom, rgba(40, 167, 69, 0.05), transparent);">
+                        <h3 style="color: #28a745;">✅ Step 2: Mark Driver Arriving</h3>
+                        <p style="font-size: 0.9em; color: #666; margin-bottom: 15px;">
+                            <strong>REQUIRED:</strong> Driver arrives at pickup location. You MUST do this before starting the ride!
+                        </p>
+                        <form id="arrivingRideForm">
+                            <div class="form-group">
+                                <label for="arrivingRideId">Ride ID</label>
+                                <input type="text" id="arrivingRideId" name="rideId" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="arrivingDriverId">Driver ID</label>
+                                <input type="number" id="arrivingDriverId" name="driverId" required>
+                                <small style="color: #666; font-size: 0.9em;">(Auto-filled when you get ride details - must match assigned driver)</small>
+                            </div>
+                            <button type="submit" class="btn" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; font-weight: bold; font-size: 1.1em; padding: 12px 24px; border: none; box-shadow: 0 4px 6px rgba(40, 167, 69, 0.3); width: 100%;">
+                                🚗 Mark Driver Arriving
+                            </button>
+                        </form>
+                        <div id="arrivingRideResponse"></div>
+                    </div>
+                    
+                    <div class="card" style="border: 3px solid #17a2b8;">
+                        <h3 style="color: #17a2b8;">✅ Step 3: Start Ride</h3>
+                        <p style="font-size: 0.9em; color: #666; margin-bottom: 15px;">Driver picks up the rider (after arriving)</p>
+                        <div style="background: #fff3cd; padding: 15px; border-radius: 5px; margin-bottom: 15px; border-left: 4px solid #ffc107;">
+                            <strong>⚠️ REQUIRED STEP:</strong> You MUST click "Mark Driver Arriving" FIRST!<br>
+                            <small style="color: #856404;">The ride must be in DRIVER_ARRIVING status before you can start it.</small>
+                        </div>
+                        <form id="startRideForm">
+                            <div class="form-group">
+                                <label for="startRideId">Ride ID</label>
+                                <input type="text" id="startRideId" name="rideId" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="driverId">Driver ID</label>
+                                <input type="number" id="driverId" name="driverId" required>
+                                <small style="color: #666; font-size: 0.9em;">(Auto-filled when ride is created - must match assigned driver)</small>
+                            </div>
+                            <button type="submit" class="btn">Start Ride</button>
+                        </form>
+                        <div id="startRideResponse"></div>
+                    </div>
+                    
+                    <div class="card" style="border: 3px solid #6c757d;">
+                        <h3 style="color: #6c757d;">✅ Step 4: Complete Ride</h3>
+                        <p style="font-size: 0.9em; color: #666; margin-bottom: 15px;">End the ride and process payment</p>
+                        <div style="background: #fff3cd; padding: 15px; border-radius: 5px; margin-bottom: 15px; border-left: 4px solid #ffc107;">
+                            <strong>⚠️ REQUIRED SEQUENCE:</strong><br>
+                            <small style="color: #856404;">1. Mark Driver Arriving → 2. Start Ride → 3. Complete Ride</small><br>
+                            <small style="color: #856404;">The ride must be in IN_PROGRESS status before you can complete it.</small>
+                        </div>
+                        <form id="completeRideForm">
+                            <div class="form-group">
+                                <label for="completeRideId">Ride ID</label>
+                                <input type="text" id="completeRideId" name="rideId" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="completeDriverId">Driver ID</label>
+                                <input type="number" id="completeDriverId" name="driverId" required>
+                                <small style="color: #666; font-size: 0.9em;">(Auto-filled when ride is created - must match assigned driver)</small>
+                            </div>
+                            <button type="submit" class="btn">Complete Ride</button>
+                        </form>
+                        <div id="completeRideResponse"></div>
+                    </div>
+                    
+                    <div class="card">
+                        <h3>Cancel Ride</h3>
+                        <form id="cancelRideForm">
+                            <div class="form-group">
+                                <label for="cancelRideId">Ride ID</label>
+                                <input type="text" id="cancelRideId" name="rideId" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="cancelUserId">User ID</label>
+                                <input type="number" id="cancelUserId" name="userId" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="cancelRole">Role</label>
+                                <select id="cancelRole" name="role" required>
+                                    <option value="rider">Rider</option>
+                                    <option value="driver">Driver</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-secondary">Cancel Ride</button>
+                        </form>
+                        <div id="cancelRideResponse"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const API_BASE_URL = 'http://localhost:8080/v1';
+        
+        function showResponse(elementId, data, isError = false) {
+            const element = document.getElementById(elementId);
+            const jsonString = JSON.stringify(data, null, 2);
+            // Add syntax highlighting for JSON (with black base text)
+            const highlightedJson = jsonString
+                .replace(/(".*?")\s*:/g, '<span style="color: #0066cc !important;">$1</span>:') // Keys in blue
+                .replace(/:\s*(".*?")/g, ': <span style="color: #cc6600 !important;">$1</span>') // String values in orange
+                .replace(/:\s*(\d+\.?\d*)/g, ': <span style="color: #008000 !important;">$1</span>') // Numbers in green
+                .replace(/:\s*(true|false)/g, ': <span style="color: #0000cc !important;">$1</span>') // Booleans in blue
+                .replace(/:\s*(null)/g, ': <span style="color: #666666 !important;">$1</span>'); // Null in gray
+            
+            element.innerHTML = `<div class="response ${isError ? 'error' : 'success'}">
+                <pre>${highlightedJson}</pre>
+            </div>`;
+        }
+        
+        // Create Ride
+        document.getElementById('createRideForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = {
+                riderId: parseInt(formData.get('riderId')),
+                pickupLatitude: parseFloat(formData.get('pickupLat')),
+                pickupLongitude: parseFloat(formData.get('pickupLng')),
+                pickupAddress: formData.get('pickupAddress'),
+                dropoffLatitude: parseFloat(formData.get('dropoffLat')),
+                dropoffLongitude: parseFloat(formData.get('dropoffLng')),
+                dropoffAddress: formData.get('dropoffAddress'),
+                tier: formData.get('tier'),
+                paymentMethod: formData.get('paymentMethod')
+            };
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/rides`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Tenant-Id': formData.get('tenantId'),
+                        'X-Region': formData.get('region')
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                // Check if response is successful (status 200-299)
+                if (response.ok && result.rideId) {
+                    showResponse('createRideResponse', result, false);
+                    // Auto-fill ride ID in other forms
+                    document.getElementById('rideId').value = result.rideId;
+                    document.getElementById('arrivingRideId').value = result.rideId;
+                    document.getElementById('startRideId').value = result.rideId;
+                    document.getElementById('completeRideId').value = result.rideId;
+                    document.getElementById('cancelRideId').value = result.rideId;
+                    if (result.driverId) {
+                        document.getElementById('arrivingDriverId').value = result.driverId;
+                        document.getElementById('driverId').value = result.driverId;
+                        document.getElementById('completeDriverId').value = result.driverId;
+                    }
+                } else {
+                    // Show error response
+                    showResponse('createRideResponse', {
+                        error: result.message || 'Failed to create ride',
+                        details: result.details || 'Unknown error',
+                        status: result.status || response.status
+                    }, true);
+                }
+            } catch (error) {
+                showResponse('createRideResponse', { 
+                    error: 'Network error or server unavailable',
+                    details: error.message 
+                }, true);
+            }
+        });
+        
+        // Mark Driver Arriving
+        document.getElementById('arrivingRideForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const rideId = document.getElementById('arrivingRideId').value;
+            const driverId = document.getElementById('arrivingDriverId').value;
+            const tenantId = document.getElementById('tenantId').value || 'tenant1';
+            const region = document.getElementById('region').value || 'us-east';
+            
+            // Validate driver ID is provided
+            if (!driverId || driverId === '0') {
+                showResponse('arrivingRideResponse', {
+                    error: 'Driver ID is required',
+                    details: 'Please enter the driver ID assigned to this ride. Get the ride details first to see the assigned driver.'
+                }, true);
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/rides/${rideId}/arriving?driverId=${driverId}`, {
+                    method: 'POST',
+                    headers: {
+                        'X-Tenant-Id': tenantId,
+                        'X-Region': region
+                    }
+                });
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showResponse('arrivingRideResponse', result, false);
+                    // Update status in get ride response if it exists
+                    if (result.status === 'DRIVER_ARRIVING') {
+                        const getResponseDiv = document.getElementById('getRideResponse');
+                        if (getResponseDiv && getResponseDiv.innerHTML.includes('Next Step')) {
+                            getResponseDiv.innerHTML = getResponseDiv.innerHTML.replace(
+                                /Next Step:.*/,
+                                '✅ <strong>Next Step:</strong> Click "Start Ride" button below'
+                            );
+                        }
+                    }
+                } else {
+                    let errorMsg = result.message || 'Failed to mark driver arriving';
+                    if (errorMsg.includes('not authorized')) {
+                        errorMsg += '. Make sure you are using the correct driver ID assigned to this ride.';
+                    } else if (errorMsg.includes('Invalid state transition')) {
+                        errorMsg += '. The ride must be in MATCHED status. Get the ride details to see current status.';
+                    }
+                    showResponse('arrivingRideResponse', {
+                        error: errorMsg,
+                        details: result.details || 'Unknown error',
+                        status: result.status || response.status,
+                        tip: '💡 Tip: Click "Get Ride" first to see the assigned driver ID and current status, then auto-fill all fields.'
+                    }, true);
+                }
+            } catch (error) {
+                showResponse('arrivingRideResponse', { 
+                    error: 'Network error or server unavailable',
+                    details: error.message 
+                }, true);
+            }
+        });
+        
+        // Get Ride
+        document.getElementById('getRideForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const rideId = document.getElementById('rideId').value;
+            const tenantId = document.getElementById('tenantId').value || 'tenant1';
+            const region = document.getElementById('region').value || 'us-east';
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/rides/${rideId}`, {
+                    headers: {
+                        'X-Tenant-Id': tenantId,
+                        'X-Region': region
+                    }
+                });
+                const result = await response.json();
+                
+                if (response.ok && result.rideId) {
+                    // Auto-fill ALL fields FIRST before showing response
+                    // Auto-fill ride IDs in all action forms
+                    const rideIdFields = ['arrivingRideId', 'startRideId', 'completeRideId', 'cancelRideId'];
+                    rideIdFields.forEach(fieldId => {
+                        const field = document.getElementById(fieldId);
+                        if (field) {
+                            field.value = result.rideId;
+                            // Visual feedback - briefly highlight the field
+                            field.style.borderColor = '#28a745';
+                            setTimeout(() => { field.style.borderColor = ''; }, 2000);
+                        }
+                    });
+                    
+                    // Auto-fill driver ID if ride has a driver assigned
+                    if (result.driverId) {
+                        const driverIdFields = ['arrivingDriverId', 'driverId', 'completeDriverId'];
+                        driverIdFields.forEach(fieldId => {
+                            const field = document.getElementById(fieldId);
+                            if (field) {
+                                field.value = result.driverId;
+                                // Visual feedback - briefly highlight the field
+                                field.style.borderColor = '#28a745';
+                                setTimeout(() => { field.style.borderColor = ''; }, 2000);
+                            }
+                        });
+                    }
+                    
+                    // Determine next step based on status
+                    let nextStep = '';
+                    let statusColor = '#2196F3';
+                    if (result.status === 'MATCHED') {
+                        nextStep = '✅ <strong style="color: #000000;">Next Step:</strong> <span style="color: #212529;">Click "Mark Driver Arriving" button below (REQUIRED before starting)</span>';
+                        statusColor = '#28a745';
+                    } else if (result.status === 'DRIVER_ARRIVING') {
+                        nextStep = '✅ <strong style="color: #000000;">Next Step:</strong> <span style="color: #212529;">Click "Start Ride" button below (now you can start!)</span>';
+                        statusColor = '#17a2b8';
+                    } else if (result.status === 'IN_PROGRESS') {
+                        nextStep = '✅ <strong style="color: #000000;">Next Step:</strong> <span style="color: #212529;">Click "Complete Ride" button below</span>';
+                        statusColor = '#17a2b8';
+                    } else if (result.status === 'COMPLETED') {
+                        nextStep = '✅ <strong style="color: #000000;">Ride Completed!</strong> <span style="color: #212529;">No further actions needed.</span>';
+                        statusColor = '#6c757d';
+                    } else if (result.status === 'CANCELLED') {
+                        nextStep = '❌ <strong style="color: #000000;">Ride Cancelled</strong> <span style="color: #212529;">- No further actions possible.</span>';
+                        statusColor = '#dc3545';
+                    } else if (result.status === 'PENDING') {
+                        nextStep = '⚠️ <strong style="color: #000000;">No driver assigned yet</strong> <span style="color: #212529;">- Ride is still pending. Create a new ride.</span>';
+                        statusColor = '#ffc107';
+                    }
+                    
+                    // Show response with helpful information
+                    const responseDiv = document.getElementById('getRideResponse');
+                    const statusBadge = result.status ? `<span class="status-badge status-${result.status.toLowerCase().replace('_', '-')}">${result.status}</span>` : '';
+                    
+                    // Format JSON with syntax highlighting (with black base text)
+                    const jsonString = JSON.stringify(result, null, 2);
+                    const highlightedJson = jsonString
+                        .replace(/(".*?")\s*:/g, '<span style="color: #0066cc !important;">$1</span>:') // Keys in blue
+                        .replace(/:\s*(".*?")/g, ': <span style="color: #cc6600 !important;">$1</span>') // String values in orange
+                        .replace(/:\s*(\d+\.?\d*)/g, ': <span style="color: #008000 !important;">$1</span>') // Numbers in green
+                        .replace(/:\s*(true|false)/g, ': <span style="color: #0000cc !important;">$1</span>') // Booleans in blue
+                        .replace(/:\s*(null)/g, ': <span style="color: #666666 !important;">$1</span>'); // Null in gray
+                    
+                    let infoHtml = `<div class="response success">
+                        <pre>${highlightedJson}</pre>
+                    </div>`;
+                    
+                    if (result.driverId) {
+                        infoHtml += `<div style="margin-top: 10px; padding: 15px; background: #e7f3ff; border-radius: 5px; border-left: 4px solid ${statusColor};">
+                            <div style="margin-bottom: 10px; color: #212529; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size: 0.95em; line-height: 1.6;">
+                                <strong style="color: #000000; font-size: 1.05em;">📋 Ride Information:</strong><br>
+                                <span style="color: #212529;">• Status: ${statusBadge}</span><br>
+                                <span style="color: #212529;">• Assigned Driver: <strong style="color: #000000;">Driver ID ${result.driverId}</strong> (${result.driverName || 'Unknown'})</span><br>
+                                <span style="color: #212529;">• All form fields have been auto-filled below!</span>
+                            </div>
+                            <div style="padding-top: 10px; border-top: 1px solid #b3d9ff; color: #212529; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size: 0.95em; line-height: 1.6;">
+                                ${nextStep}
+                            </div>
+                        </div>`;
+                    } else if (result.status === 'PENDING') {
+                        infoHtml += `<div style="margin-top: 10px; padding: 15px; background: #fff3cd; border-radius: 5px; border-left: 4px solid #ffc107; color: #212529; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size: 0.95em; line-height: 1.6;">
+                            <strong style="color: #000000;">⚠️ Warning:</strong> This ride is still PENDING and has no driver assigned. 
+                            You cannot perform actions on this ride. Please create a new ride.
+                        </div>`;
+                    }
+                    
+                    responseDiv.innerHTML = infoHtml;
+                } else {
+                    showResponse('getRideResponse', {
+                        error: result.message || 'Ride not found',
+                        details: result.details || 'Unknown error',
+                        status: result.status || response.status
+                    }, true);
+                }
+            } catch (error) {
+                showResponse('getRideResponse', { 
+                    error: 'Network error or server unavailable',
+                    details: error.message 
+                }, true);
+            }
+        });
+        
+        // Start Ride
+        document.getElementById('startRideForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const rideId = document.getElementById('startRideId').value;
+            const driverId = document.getElementById('driverId').value;
+            const tenantId = document.getElementById('tenantId').value || 'tenant1';
+            const region = document.getElementById('region').value || 'us-east';
+            
+            // Validate driver ID is provided
+            if (!driverId || driverId === '0') {
+                showResponse('startRideResponse', {
+                    error: 'Driver ID is required',
+                    details: 'Please enter the driver ID assigned to this ride. Get the ride details first to see the assigned driver.'
+                }, true);
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/rides/${rideId}/start?driverId=${driverId}`, {
+                    method: 'POST',
+                    headers: {
+                        'X-Tenant-Id': tenantId,
+                        'X-Region': region
+                    }
+                });
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showResponse('startRideResponse', result, false);
+                    // Update status in get ride response if it exists
+                    if (result.status === 'IN_PROGRESS') {
+                        const getResponseDiv = document.getElementById('getRideResponse');
+                        if (getResponseDiv && getResponseDiv.innerHTML.includes('Next Step')) {
+                            getResponseDiv.innerHTML = getResponseDiv.innerHTML.replace(
+                                /Next Step:.*/,
+                                '✅ <strong>Next Step:</strong> Click "Complete Ride" button below'
+                            );
+                        }
+                    }
+                } else {
+                    let errorMsg = result.message || 'Failed to start ride';
+                    let tip = '💡 Tip: ';
+                    
+                    if (errorMsg.includes('Invalid state transition')) {
+                        errorMsg += '. The ride must be in DRIVER_ARRIVING status before it can be started.';
+                        tip += 'You MUST click "Mark Driver Arriving" FIRST, then "Start Ride". The sequence is: Mark Arriving → Start Ride → Complete Ride.';
+                    } else if (errorMsg.includes('not authorized')) {
+                        errorMsg += '. Make sure you are using the correct driver ID assigned to this ride.';
+                        tip += 'Click "Get Ride" first to see the assigned driver ID and auto-fill it.';
+                    } else {
+                        tip += 'Click "Get Ride" first to see the current status and assigned driver ID.';
+                    }
+                    
+                    showResponse('startRideResponse', {
+                        error: errorMsg,
+                        details: result.details || 'Unknown error',
+                        status: result.status || response.status,
+                        tip: tip
+                    }, true);
+                }
+            } catch (error) {
+                showResponse('startRideResponse', { 
+                    error: 'Network error or server unavailable',
+                    details: error.message 
+                }, true);
+            }
+        });
+        
+        // Complete Ride
+        document.getElementById('completeRideForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const rideId = document.getElementById('completeRideId').value;
+            const driverId = document.getElementById('completeDriverId').value;
+            const tenantId = document.getElementById('tenantId').value || 'tenant1';
+            const region = document.getElementById('region').value || 'us-east';
+            
+            // Validate driver ID is provided
+            if (!driverId || driverId === '0') {
+                showResponse('completeRideResponse', {
+                    error: 'Driver ID is required',
+                    details: 'Please enter the driver ID assigned to this ride. Get the ride details first to see the assigned driver.'
+                }, true);
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/rides/${rideId}/complete?driverId=${driverId}`, {
+                    method: 'POST',
+                    headers: {
+                        'X-Tenant-Id': tenantId,
+                        'X-Region': region
+                    }
+                });
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showResponse('completeRideResponse', result, false);
+                    // Update status in get ride response if it exists
+                    if (result.status === 'COMPLETED') {
+                        const getResponseDiv = document.getElementById('getRideResponse');
+                        if (getResponseDiv && getResponseDiv.innerHTML.includes('Next Step')) {
+                            getResponseDiv.innerHTML = getResponseDiv.innerHTML.replace(
+                                /Next Step:.*/,
+                                '✅ <strong>Ride Completed!</strong> No further actions needed.'
+                            );
+                        }
+                    }
+                } else {
+                    let errorMsg = result.message || 'Failed to complete ride';
+                    if (errorMsg.includes('not authorized')) {
+                        errorMsg += '. Make sure you are using the correct driver ID assigned to this ride.';
+                    } else if (errorMsg.includes('Invalid state transition')) {
+                        errorMsg += '. Make sure you have completed all previous steps: Mark Driver Arriving → Start Ride → Complete Ride';
+                    }
+                    showResponse('completeRideResponse', {
+                        error: errorMsg,
+                        details: result.details || 'Unknown error',
+                        status: result.status || response.status,
+                        tip: '💡 Tip: Click "Get Ride" first to see the assigned driver ID and current status, then follow the sequence.'
+                    }, true);
+                }
+            } catch (error) {
+                showResponse('completeRideResponse', { 
+                    error: 'Network error or server unavailable',
+                    details: error.message 
+                }, true);
+            }
+        });
+        
+        // Cancel Ride
+        document.getElementById('cancelRideForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const rideId = document.getElementById('cancelRideId').value;
+            const userId = document.getElementById('cancelUserId').value;
+            const role = document.getElementById('cancelRole').value;
+            const tenantId = document.getElementById('tenantId').value || 'tenant1';
+            const region = document.getElementById('region').value || 'us-east';
+            
+            // Validate inputs
+            if (!rideId || !userId || !role) {
+                showResponse('cancelRideResponse', {
+                    error: 'All fields are required',
+                    details: 'Please fill in Ride ID, User ID, and Role'
+                }, true);
+                return;
+            }
+            
+            try {
+                // Use URLSearchParams to properly encode the parameters
+                const params = new URLSearchParams();
+                params.append('userId', userId);
+                params.append('userType', role); // Backend expects 'userType', not 'role'
+                
+                const response = await fetch(`${API_BASE_URL}/rides/${rideId}/cancel?${params.toString()}`, {
+                    method: 'POST',
+                    headers: {
+                        'X-Tenant-Id': tenantId,
+                        'X-Region': region
+                    }
+                });
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showResponse('cancelRideResponse', result, false);
+                } else {
+                    showResponse('cancelRideResponse', {
+                        error: result.message || 'Failed to cancel ride',
+                        details: result.details || 'Unknown error',
+                        status: result.status || response.status
+                    }, true);
+                }
+            } catch (error) {
+                showResponse('cancelRideResponse', { 
+                    error: 'Network error or server unavailable',
+                    details: error.message 
+                }, true);
+            }
+        });
+    </script>
+</body>
+</html>
+
