@@ -13,71 +13,111 @@ A scalable, multi-tenant, multi-region ride-hailing system built with Spring Boo
 - **Comprehensive Monitoring**: New Relic APM integration
 - **Scalable Architecture**: Stateless design for horizontal scaling
 
-## Technology Stack
-
-- **Framework**: Spring Boot 3.2.0
-- **Language**: Java 21
-- **Database**: PostgreSQL/MySQL (H2 for development)
-- **Cache**: Redis
-- **Messaging**: Apache Kafka
-- **Monitoring**: New Relic APM
-- **Build Tool**: Maven
-
 ## Prerequisites
 
-- Java 21 or higher
-- Maven 3.6+
-- Redis (for caching and rate limiting)
-- Kafka (for async messaging)
-- PostgreSQL/MySQL (for production) or H2 (for development)
+- **Java 21** (OpenJDK 21 or Oracle JDK 21)
+- **Maven** (included via Maven Wrapper - `./mvnw`)
 
-## Getting Started
+## Setup
 
-### 1. Clone the Repository
+### 1. Install Java 21 (if not already installed)
+
+**macOS (using Homebrew):**
 
 ```bash
-git clone <repository-url>
+brew install openjdk@21
+export JAVA_HOME=/opt/homebrew/opt/openjdk@21
+export PATH=$JAVA_HOME/bin:$PATH
+```
+
+**Linux:**
+
+```bash
+sudo apt-get install openjdk-21-jdk
+export JAVA_HOME=/usr/lib/jvm/java-21-openjdk
+export PATH=$JAVA_HOME/bin:$PATH
+```
+
+**Windows:**
+
+- Download OpenJDK 21 from [Adoptium](https://adoptium.net/)
+- Set `JAVA_HOME` environment variable to JDK installation path
+- Add `%JAVA_HOME%\bin` to PATH
+
+### 2. Verify Java Installation
+
+```bash
+java -version
+# Should show: openjdk version "21" or similar
+```
+
+## Starting the Application
+
+### Option 1: Using Maven Wrapper (Recommended)
+
+```bash
 cd ride-hail-app
-```
-
-### 2. Configure Application
-
-Update `src/main/resources/application.properties`:
-
-```properties
-# Database
-spring.datasource.url=jdbc:h2:mem:testdb
-spring.datasource.driver-class-name=org.h2.Driver
-
-# Redis (optional for development)
-spring.redis.host=localhost
-spring.redis.port=6379
-
-# Kafka (optional for development)
-spring.kafka.bootstrap-servers=localhost:9092
-
-# New Relic (optional)
-management.newrelic.metrics.export.enabled=false
-```
-
-### 3. Build and Run
-
-```bash
-# Build
-./mvnw clean package
-
-# Run
+export JAVA_HOME=/opt/homebrew/opt/openjdk@21  # macOS only
+export PATH=$JAVA_HOME/bin:$PATH
 ./mvnw spring-boot:run
 ```
 
-The application will start on `http://localhost:8080`
+### Option 2: Using Maven (if installed globally)
 
-### 4. Access the Frontend
+```bash
+cd ride-hail-app
+mvn spring-boot:run
+```
 
-Open your browser and navigate to:
+### Option 3: Build and Run JAR
+
+```bash
+cd ride-hail-app
+./mvnw clean package
+java -jar target/ride-hail-app-0.0.1-SNAPSHOT.jar
 ```
-http://localhost:8080
+
+## Accessing the Application
+
+Once started, the application will be available at:
+
+- **Frontend UI:** http://localhost:8080/
+- **API Base URL:** http://localhost:8080/v1
+- **Health Check:** http://localhost:8080/actuator/health
+
+## Hot Reloading (Development)
+
+The app includes Spring Boot DevTools for automatic restarts on code changes:
+
+1. Start the app using `./mvnw spring-boot:run`
+2. Make changes to Java files
+3. The app will automatically restart when files are saved
+
+**Note:** For frontend changes (`index.html`), you may need to refresh the browser.
+
+## Stopping the Application
+
+Press `Ctrl+C` in the terminal where the app is running, or:
+
+```bash
+pkill -f "spring-boot:run"
 ```
+
+## Quick Test
+
+1. Open browser: http://localhost:8080/
+2. Click "Create Ride Request" with default values
+3. Click "Get Ride" to see the created ride
+4. Follow the sequence: Mark Driver Arriving → Start Ride → Complete Ride
+
+## Default Test Data
+
+The application automatically seeds test data on startup:
+
+- **Rider ID:** 1
+- **Driver ID:** 1
+- **Tenant:** tenant1
+- **Region:** us-east
 
 ## API Endpoints
 
@@ -85,6 +125,7 @@ http://localhost:8080
 
 - `POST /v1/rides` - Create a ride request
 - `GET /v1/rides/{rideId}` - Get ride details
+- `POST /v1/rides/{rideId}/arriving` - Mark driver arriving
 - `POST /v1/rides/{rideId}/start` - Start a ride
 - `POST /v1/rides/{rideId}/complete` - Complete a ride
 - `POST /v1/rides/{rideId}/cancel` - Cancel a ride
@@ -124,98 +165,46 @@ curl -X POST http://localhost:8080/v1/rides \
   }'
 ```
 
-### Get Ride Details
+## Troubleshooting
+
+### Port 8080 Already in Use
 
 ```bash
-curl http://localhost:8080/v1/rides/{rideId}
+# Find and kill process using port 8080
+lsof -ti:8080 | xargs kill -9
 ```
 
-### Start a Ride
+### Java Not Found
+
+- Verify `JAVA_HOME` is set correctly
+- Verify Java 21 is installed: `java -version`
+- On macOS, ensure you've exported JAVA_HOME after installing
+
+### Maven Wrapper Permission Denied
 
 ```bash
-curl -X POST "http://localhost:8080/v1/rides/{rideId}/start?driverId=1"
+chmod +x ./mvnw
 ```
 
-## Testing
+## Optional Services
 
-### Run Unit Tests
+The app can run without these, but they enhance functionality:
 
-```bash
-./mvnw test
-```
+- **Redis:** For caching, spatial indexing, distributed locking
+- **Kafka:** For asynchronous notifications
+- **New Relic:** For application monitoring
 
-### Run Integration Tests
+See `application.properties` to configure these services.
 
-```bash
-./mvnw test -Dtest=*IntegrationTest
-```
+## Technology Stack
 
-## Project Structure
-
-```
-ride-hail-app/
-├── src/
-│   ├── main/
-│   │   ├── java/com/example/ride_hail_app/
-│   │   │   ├── controller/      # REST controllers
-│   │   │   ├── service/         # Business logic
-│   │   │   ├── model/           # Domain models
-│   │   │   ├── dto/             # Data transfer objects
-│   │   │   ├── repository/      # Data access layer
-│   │   │   ├── config/          # Configuration classes
-│   │   │   ├── security/        # Security configuration
-│   │   │   ├── exception/       # Exception handling
-│   │   │   ├── statemachine/    # State machine for ride lifecycle
-│   │   │   ├── indexing/        # Spatial indexing
-│   │   │   ├── monitoring/      # New Relic integration
-│   │   │   └── interceptor/     # Request interceptors
-│   │   └── resources/
-│   │       ├── application.properties
-│   │       └── static/          # Frontend HTML
-│   └── test/                    # Test classes
-├── HLD.md                       # High-Level Design document
-├── LLD.md                       # Low-Level Design document
-├── PERFORMANCE_REPORT.md        # Performance report guide
-├── NEW_RELIC_SETUP.md          # New Relic setup instructions
-└── README.md                    # This file
-```
-
-## Key Design Decisions
-
-### Scalability
-
-- **Stateless APIs**: All services are stateless for horizontal scaling
-- **Caching**: Redis for frequently accessed data
-- **Async Processing**: Location updates and notifications processed asynchronously
-- **Database Optimization**: Indexes, connection pooling, batch processing
-
-### Performance
-
-- **Spatial Indexing**: Geohash-based index for O(1) driver lookups
-- **Batch Processing**: Location updates batched for high throughput
-- **Connection Pooling**: HikariCP for efficient database connections
-- **Query Optimization**: Indexed queries, batch inserts
-
-### Reliability
-
-- **Idempotency**: All write operations support idempotency keys
-- **State Machine**: Validated state transitions prevent invalid operations
-- **Distributed Locks**: Atomic driver allocation
-- **Error Handling**: Comprehensive error handling with retry logic
-
-## Monitoring
-
-### New Relic Integration
-
-See [NEW_RELIC_SETUP.md](NEW_RELIC_SETUP.md) for detailed setup instructions.
-
-### Metrics Tracked
-
-- API latency (p50, p95, p99)
-- Request throughput
-- Error rate
-- Database query performance
-- Business metrics (ride requests, matches, etc.)
+- **Framework**: Spring Boot 3.2.0
+- **Language**: Java 21
+- **Database**: PostgreSQL/MySQL (H2 for development)
+- **Cache**: Redis (optional)
+- **Messaging**: Apache Kafka (optional)
+- **Monitoring**: New Relic APM (optional)
+- **Build Tool**: Maven
 
 ## Documentation
 
@@ -223,6 +212,7 @@ See [NEW_RELIC_SETUP.md](NEW_RELIC_SETUP.md) for detailed setup instructions.
 - **LLD.md**: Low-Level Design document
 - **PERFORMANCE_REPORT.md**: Performance monitoring guide
 - **NEW_RELIC_SETUP.md**: New Relic configuration guide
+- **DELIVERABLES.md**: Complete feature list
 
 ## Performance Targets
 
@@ -232,31 +222,11 @@ See [NEW_RELIC_SETUP.md](NEW_RELIC_SETUP.md) for detailed setup instructions.
 - **Location Updates**: 200k updates/sec
 - **Error Rate**: < 1%
 
-## Security
-
-- **Input Validation**: All inputs validated
-- **Rate Limiting**: Redis-based rate limiting
-- **CORS**: Configured for cross-origin requests
-- **Tenant Isolation**: Row-level data isolation
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests
-5. Submit a pull request
-
 ## License
 
 This project is licensed under the MIT License.
-
-## Support
-
-For issues and questions, please open an issue in the repository.
 
 ---
 
 **Version**: 1.0  
 **Last Updated**: 2024
-
